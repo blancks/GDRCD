@@ -75,4 +75,38 @@ class AudioController
                 mediaElementChat.play();
             </script>';
     }
+
+    /**
+     * @fn clientControls
+     * @note Fornisco le funzioni necessarie per permettere lato client la gestione dell'audio
+     * @param string $label Identificativo del componente audioControllaer
+     * @return string
+     */
+    public static function clientControls($label = NULL, $isChild = FALSE)
+    {
+        // Se non è stato dichiarato un tipo, non emetto suono
+        if(empty($label)) return NULL;
+
+        // Esco nel caso in cui siano disattivati i suoni
+        if(!self::isSoundAllowed($label) || $_SESSION['blocca_media'] == 1 ) {
+            return NULL;
+        }
+
+        // Prevedo la possibilità di essere dentro un iFrame
+        $document = $isChild ? 'parent.document' : 'document';
+
+        return  '<script type="text/javascript">
+                function playAudio_'. $label .'(){
+                    let mediaElementChat = '.$document.'.getElementById("audioController_'.$label.'");
+                    mediaElementChat.play();
+                    console.log(\'playAudio_'. $label .'\');
+                }
+                function stopAudio_'. $label .'(){
+                    let mediaElementChat = '.$document.'.getElementById("audioController_'.$label.'");
+                    mediaElementChat.pause();
+                    mediaElementChat.currentTime = 0;
+                    console.log(\'stopAudio_'. $label .'\');
+                }
+            </script>';
+    }
 }

@@ -22,6 +22,15 @@ if($PARAMETERS['mode']['check_messages'] === 'ON') {
     $hasNewMessage = ($cntNewMessage > 0);
     gdrcd_query($messaggi_non_letti, 'free');
 
+    if (isset($_GET['json'])) {
+        header('Content-type: application/json;charset=utf-8');
+        echo json_encode([
+            'new' => $hasNewMessage,
+            'count' => $cntNewMessage,
+        ]);
+        die();
+    }
+
     // NO NUOVI MESSAGGI
     if(!$hasNewMessage) {
 
@@ -38,23 +47,23 @@ if($PARAMETERS['mode']['check_messages'] === 'ON') {
 
             // Inserisco lo script per il click dell'immagine
             $textMessages = '
-                <script type="text/javascript"> 
-                    if (document.images) { 
-                        var msg_button1_up = new Image(); 
-                        msg_button1_up.src = "../../../themes/'.$PARAMETERS['themes']['current_theme'].'/imgs/menu/'.$img_up.'"; 
-                        
-                        var msg_button1_over = new Image(); 
+                <script type="text/javascript">
+                    if (document.images) {
+                        var msg_button1_up = new Image();
+                        msg_button1_up.src = "../../../themes/'.$PARAMETERS['themes']['current_theme'].'/imgs/menu/'.$img_up.'";
+
+                        var msg_button1_over = new Image();
                         msg_button1_over.src = "../../../themes/'.$PARAMETERS['themes']['current_theme'].'/imgs/menu/'.$img_down.'";
-                    } 
-                    
-                    function msg_over_button() { 
-                        if (document.images) { 
+                    }
+
+                    function msg_over_button() {
+                        if (document.images) {
                             document["msg_buttonOne"].src = msg_button1_over.src;
                         }
-                    } 
-                    
-                    function msg_up_button() { 
-                        if (document.images) { 
+                    }
+
+                    function msg_up_button() {
+                        if (document.images) {
                             document["msg_buttonOne"].src = msg_button1_up.src
                         }
                     }
