@@ -85,15 +85,110 @@
                 }
 
                 echo '<div class="link_menu"><a href="'.$link_menu['url'].'" id="link_'.$mkey.'_'.$key.'">';
-                foreach($link_menu as $k => $v) {
-                    if( ! in_array($k, ['text', 'image_file', 'url', 'image_file_onclick', 'sprite'])) {
-                        echo $k.'="'.$v.'"';
-                    }
-                }
+                // foreach($link_menu as $k => $v) {
+                //     if( ! in_array($k, ['text', 'image_file', 'url', 'image_file_onclick', 'sprite'])) {
+                //         echo $k.'="'.$v.'"';
+                //     }
+                // }
                 echo $content.'</a></div>';
             }
         }
         ?>
+
+        <?=AudioController::build('messages');?>
+        <?=AudioController::clientControls('messages');?>
+        <script>
+            (() => {
+
+                const readMessagesImage = '<?= 'themes/'.$PARAMETERS['themes']['current_theme'].'/imgs/'.$mkey.'/'. $PARAMETERS['menu']['private_message']['image_file'] ?>';
+                const unreadMessagesImage = '<?= 'themes/'.$PARAMETERS['themes']['current_theme'].'/imgs/'.$mkey.'/'. $PARAMETERS['menu']['private_message']['image_file_new'] ?>';
+                const textMessageLink = '<?= $PARAMETERS['menu']['private_message']['text'] ?>';
+
+                /**
+                 * Funzione che aggiorna il tastino dei messaggi per
+                 * segnalare la presenza di messaggi non letti
+                 */
+                function setMessagesButtonUnread(count) {
+                    const messageLink = getMessageLink();
+                    const messageLinkImage = getMessageLinkImage();
+
+                    // Link immagine
+                    if (messageLinkImage) {
+                        if (messageLinkImage.src !== unreadMessagesImage) {
+                            messageLinkImage.src = unreadMessagesImage;
+                            messageLink.classList.toggle('unread');
+                        }
+
+                        return;
+                    }
+
+                    // Link testo
+                    messageLink.innerHTML = `${textMessageLink} [${count}]`;
+                }
+
+                /**
+                 * Funzione che aggiorna il tastino dei messaggi per
+                 * segnalare che non ci sono messaggi nuovi da leggere
+                 */
+                function setMessagesButtonRead() {
+                    const messageLink = getMessageLink();
+                    const messageLinkImage = getMessageLinkImage();
+
+                    // Link immagine
+                    if (messageLinkImage) {
+                        if (messageLinkImage.src !== readMessagesImage) {
+                            messageLinkImage.src = readMessagesImage;
+                            messageLink.classList.toggle('unread');
+                        }
+
+                        return;
+                    }
+
+                    // Link testo
+                    messageLink.innerHTML = `${textMessageLink}`;
+                }
+
+                function getMessageLinkImage() {
+                    return document.querySelector('#link_menu_private_message > img');
+                }
+
+                function getMessageLink() {
+                    return document.querySelector('#link_menu_private_message');
+                }
+
+                /**
+                 * Funzione che controlla la presenza di nuovi messaggi
+                 */
+                function checkNewMessages() {
+                    fetch('pages/frame/messages/index.inc.php?json')
+                    .then(response => response.json())
+                    .then(data => {
+
+                        // Ci sono nuovi messaggi?
+                        if (data.new) {
+                            // Riproduciamo l'audio e cambiamo lo stato del tasto dei messaggi privati
+                            playAudio_messages();
+                            setMessagesButtonUnread(data.count);
+                            return;
+                        }
+
+                        // Altrimenti assicuriamoci di fermare la riproduzione dell'audio
+                        // e ripristinare lo stato del tasto dei messaggi privati
+                        stopAudio_messages();
+                        setMessagesButtonRead();
+                    })
+                    .catch(error => console.error('Si è verificato il seguente errore controllando i nuovi messaggi:', error));
+                }
+
+                // Primo avvio funzione: immediato
+                checkNewMessages();
+
+                // Avii successivi: ogni 15 secondi
+                setInterval(checkNewMessages, 15000); // 15secondi * 1000 = 15000
+
+            })();
+        </script>
+
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
         <script type="application/javascript">
             var <?= $mkey ?>_hovers = <?= json_encode($hovers); ?>;
